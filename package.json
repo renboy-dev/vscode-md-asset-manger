@@ -85,9 +85,13 @@
         "label": "Markdown Asset Manager"
       }
     ],
+    "markdown.previewStyles": [
+      "./media/preview.css"
+    ],
     "markdown.previewScripts": [
       "./media/preview.js"
     ],
+    "markdown.markdownItPlugins": true,
     "configuration": {
       "title": "Markdown Asset Manager",
       "properties": {
