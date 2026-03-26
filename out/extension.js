@@ -95,10 +95,6 @@ function activate(context) {
     // Return extendMarkdownIt for VS Code markdown preview integration
     return {
         extendMarkdownIt(md) {
-            const config = vscode.workspace.getConfiguration('mdAssetManager');
-            const assetsRoot = config.get('assetsRoot', 'assets');
-            const imagesSubdir = config.get('imagesSubdir', 'images');
-            const filesSubdir = config.get('filesSubdir', 'files');
             const IMAGE_EXTENSIONS = new Set([
                 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'tiff', 'ico', 'apng'
             ]);
@@ -145,6 +141,12 @@ function activate(context) {
                     return false;
                 if (silent)
                     return true;
+                // Get config at render time (not at initialization)
+                // This ensures config changes take effect immediately
+                const config = vscode.workspace.getConfiguration('mdAssetManager');
+                const assetsRoot = config.get('assetsRoot', 'assets');
+                const imagesSubdir = config.get('imagesSubdir', 'images');
+                const filesSubdir = config.get('filesSubdir', 'files');
                 const img = isImage(filename);
                 const subdir = img ? imagesSubdir : filesSubdir;
                 const assetPath = `/${assetsRoot}/${subdir}/${filename}`;
