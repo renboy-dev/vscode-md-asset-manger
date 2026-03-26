@@ -1,0 +1,16 @@
+# Source files
+src/**
+**/*.ts
+**/*.map
+
+# Config files
+.vscode/**
+tsconfig.json
+
+# Development files
+node_modules/**
+.gitignore
+.git/**
+
+# Other
+开发计划.md

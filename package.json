@@ -1,0 +1,110 @@
+{
+  "name": "md-asset-manager",
+  "displayName": "Markdown Asset Manager",
+  "description": "Manage markdown assets with auto-save to assets directory and hash renaming",
+  "version": "0.0.1",
+  "publisher": "your-publisher-name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/md-asset-manager.git"
+  },
+  "engines": {
+    "vscode": "^1.87.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "mdAssetManager.pasteImage",
+        "title": "粘贴图片/文件"
+      },
+      {
+        "command": "mdAssetManager.openAssetsFolder",
+        "title": "打开资源目录"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "when": "editorLangId == markdown",
+          "submenu": "mdAssetManager.submenu",
+          "group": "9_cutcopypaste"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "when": "editorLangId == markdown",
+          "submenu": "mdAssetManager.submenu",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "submenu": "mdAssetManager.submenu",
+          "group": "navigation"
+        }
+      ],
+      "mdAssetManager.submenu": [
+        {
+          "command": "mdAssetManager.pasteImage",
+          "group": "1_paste@1"
+        },
+        {
+          "command": "mdAssetManager.openAssetsFolder",
+          "group": "2_folders@1"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "mdAssetManager.submenu",
+        "label": "Markdown Asset Manager"
+      }
+    ],
+    "markdown.previewScripts": [
+      "./media/preview.js"
+    ],
+    "configuration": {
+      "title": "Markdown Asset Manager",
+      "properties": {
+        "mdAssetManager.assetsRoot": {
+          "type": "string",
+          "default": "assets",
+          "description": "The root directory for storing assets (relative to workspace root)"
+        },
+        "mdAssetManager.imagesSubdir": {
+          "type": "string",
+          "default": "images",
+          "description": "Subdirectory for image files (relative to assets root)"
+        },
+        "mdAssetManager.filesSubdir": {
+          "type": "string",
+          "default": "files",
+          "description": "Subdirectory for other files (relative to assets root)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.87.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.0"
+  }
+}
