@@ -156,8 +156,7 @@ vsce package
 ```
 
 ### 安装
-在vscode中运行命令：从VSIX安装 ---> 选择编译好的.vsix文件进行安装
-安装完成后需要重启vscode才会生效！
+在vscode中运行命令：从VSIX安装 ---> 选择编译好的.vsix文件进行安装,安装完成后需要重启vscode才会生效！
 
 ## 许可证
 
