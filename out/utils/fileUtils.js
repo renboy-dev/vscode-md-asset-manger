@@ -315,15 +315,20 @@ async function saveFileToAssets(fileBuffer, ext, originalName) {
  * @param ext The file extension
  * @returns Object containing the saved file URI, the filename for markdown, and whether it's an image
  */
-async function saveAssetToAppropriateDirectory(buffer, ext) {
+async function saveAssetToAppropriateDirectory(buffer, ext, originalName) {
     const isImage = isImageExtension(ext);
     if (isImage) {
         const uri = await saveImageToAssets(buffer, ext);
         return { uri, fileName: path.basename(uri.path), isImage: true };
     }
     else {
-        const uri = await saveFileToAssets(buffer, ext);
-        return { uri, fileName: path.basename(uri.path), isImage: false };
+        const uri = await saveFileToAssets(buffer, ext, originalName);
+        // Extract display name from original filename (without extension)
+        let displayName;
+        if (originalName) {
+            displayName = path.basename(originalName, path.extname(originalName));
+        }
+        return { uri, fileName: path.basename(uri.path), isImage: false, displayName };
     }
 }
 /**

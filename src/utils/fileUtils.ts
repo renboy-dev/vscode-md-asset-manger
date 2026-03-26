@@ -305,16 +305,22 @@ export async function saveFileToAssets(
  */
 export async function saveAssetToAppropriateDirectory(
     buffer: Buffer,
-    ext: string
-): Promise<{ uri: vscode.Uri; fileName: string; isImage: boolean }> {
+    ext: string,
+    originalName?: string
+): Promise<{ uri: vscode.Uri; fileName: string; isImage: boolean; displayName?: string }> {
     const isImage = isImageExtension(ext);
     
     if (isImage) {
         const uri = await saveImageToAssets(buffer, ext);
         return { uri, fileName: path.basename(uri.path), isImage: true };
     } else {
-        const uri = await saveFileToAssets(buffer, ext);
-        return { uri, fileName: path.basename(uri.path), isImage: false };
+        const uri = await saveFileToAssets(buffer, ext, originalName);
+        // Extract display name from original filename (without extension)
+        let displayName: string | undefined;
+        if (originalName) {
+            displayName = path.basename(originalName, path.extname(originalName));
+        }
+        return { uri, fileName: path.basename(uri.path), isImage: false, displayName };
     }
 }
 

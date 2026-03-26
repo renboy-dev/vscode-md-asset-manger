@@ -85,11 +85,6 @@ export function activate(context: vscode.ExtensionContext) {
     // Return extendMarkdownIt for VS Code markdown preview integration
     return {
         extendMarkdownIt(md: any) {
-            const config = vscode.workspace.getConfiguration('mdAssetManager');
-            const assetsRoot = config.get<string>('assetsRoot', 'assets');
-            const imagesSubdir = config.get<string>('imagesSubdir', 'images');
-            const filesSubdir = config.get<string>('filesSubdir', 'files');
-
             const IMAGE_EXTENSIONS = new Set([
                 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'tiff', 'ico', 'apng'
             ]);
@@ -102,6 +97,23 @@ export function activate(context: vscode.ExtensionContext) {
             function obsidianLink(state: any, silent: boolean): boolean {
                 const start = state.pos;
                 const max = state.posMax;
+
+                // Check if we're inside inline code (between backticks)
+                // Count backticks before current position in the source
+                let backtickCount = 0;
+                for (let i = start - 1; i >= 0; i--) {
+                    const ch = state.src.charCodeAt(i);
+                    if (ch === 0x60 /* ` */) {
+                        backtickCount++;
+                    } else if (ch === 0x0A /* newline */) {
+                        // Stop at line start - backticks only count on same line
+                        break;
+                    }
+                }
+                // Odd number of backticks means we're inside inline code
+                if (backtickCount % 2 === 1) {
+                    return false;
+                }
 
                 // Check for [[
                 if (state.src.charCodeAt(start) !== 0x5B || 
@@ -141,6 +153,13 @@ export function activate(context: vscode.ExtensionContext) {
 
                 if (!filename) return false;
                 if (silent) return true;
+
+                // Get config at render time (not at initialization)
+                // This ensures config changes take effect immediately
+                const config = vscode.workspace.getConfiguration('mdAssetManager');
+                const assetsRoot = config.get<string>('assetsRoot', 'assets');
+                const imagesSubdir = config.get<string>('imagesSubdir', 'images');
+                const filesSubdir = config.get<string>('filesSubdir', 'files');
 
                 const img = isImage(filename);
                 const subdir = img ? imagesSubdir : filesSubdir;

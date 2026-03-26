@@ -133,12 +133,18 @@ export class MarkdownImagePasteProvider implements vscode.DocumentPasteEditProvi
                     const fileContent = await vscode.workspace.fs.readFile(fileUri);
                     const ext = path.extname(fileUri.path).slice(1).toLowerCase();
                     const buffer = Buffer.from(fileContent);
+                    const originalFileName = path.basename(fileUri.path);
 
                     // Save to appropriate directory
-                    const { fileName, isImage } = await saveAssetToAppropriateDirectory(buffer, ext);
+                    const { fileName, isImage, displayName } = await saveAssetToAppropriateDirectory(buffer, ext, originalFileName);
                     
-                    // Use Obsidian-style link: [[filename]]
-                    snippets.push(`[[${fileName}]]`);
+                    // Use Obsidian-style link
+                    // For non-image files, include display name: [[hash|originalName]]
+                    if (isImage || !displayName) {
+                        snippets.push(`[[${fileName}]]`);
+                    } else {
+                        snippets.push(`[[${fileName}|${displayName}]]`);
+                    }
                 } catch (e) {
                     // Skip files that can't be read
                     console.error(`Failed to process file: ${uriString}`, e);
