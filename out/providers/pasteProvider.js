@@ -93,9 +93,8 @@ class MarkdownImagePasteProvider {
             const ext = (0, hashUtils_1.getExtensionFromMimeType)(mimeType);
             const buffer = Buffer.from(imageData);
             const { fileName, isImage } = await (0, fileUtils_1.saveAssetToAppropriateDirectory)(buffer, ext);
-            // Use configured path
-            const markdownPath = isImage ? (0, fileUtils_1.getImageMarkdownPath)(fileName) : (0, fileUtils_1.getFileMarkdownPath)(fileName);
-            const markdownText = `![image](${markdownPath})`;
+            // Use Obsidian-style link: [[filename]]
+            const markdownText = `[[${fileName}]]`;
             return new vscode.DocumentPasteEdit(markdownText, 'Paste Image as Markdown', vscode.DocumentDropOrPasteEditKind.Empty);
         }
         catch (error) {
@@ -137,18 +136,11 @@ class MarkdownImagePasteProvider {
                     // Read the file
                     const fileContent = await vscode.workspace.fs.readFile(fileUri);
                     const ext = path.extname(fileUri.path).slice(1).toLowerCase();
-                    const originalName = path.basename(fileUri.path, path.extname(fileUri.path));
                     const buffer = Buffer.from(fileContent);
                     // Save to appropriate directory
                     const { fileName, isImage } = await (0, fileUtils_1.saveAssetToAppropriateDirectory)(buffer, ext);
-                    // Use configured path
-                    const markdownPath = isImage ? (0, fileUtils_1.getImageMarkdownPath)(fileName) : (0, fileUtils_1.getFileMarkdownPath)(fileName);
-                    if (isImage) {
-                        snippets.push(`![${originalName}](${markdownPath})`);
-                    }
-                    else {
-                        snippets.push(`[${path.basename(fileUri.path)}](${markdownPath})`);
-                    }
+                    // Use Obsidian-style link: [[filename]]
+                    snippets.push(`[[${fileName}]]`);
                 }
                 catch (e) {
                     // Skip files that can't be read

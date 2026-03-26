@@ -70,14 +70,8 @@ class MarkdownFileDropProvider {
                 const ext = path.extname(uri.path).slice(1).toLowerCase();
                 const buffer = Buffer.from(fileContent);
                 const { fileName, isImage } = await (0, fileUtils_1.saveAssetToAppropriateDirectory)(buffer, ext);
-                // Use configured path
-                const markdownPath = isImage ? (0, fileUtils_1.getImageMarkdownPath)(fileName) : (0, fileUtils_1.getFileMarkdownPath)(fileName);
-                if (isImage) {
-                    snippets.push(`![${path.basename(uri.path, path.extname(uri.path))}](${markdownPath})`);
-                }
-                else {
-                    snippets.push(`[${path.basename(uri.path)}](${markdownPath})`);
-                }
+                // Use Obsidian-style link: [[filename]]
+                snippets.push(`[[${fileName}]]`);
             }
             return new vscode.DocumentDropEdit(snippets.join('\n'));
         }

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { saveAssetToAppropriateDirectory, isImageExtension, getImageMarkdownPath, getFileMarkdownPath } from '../utils/fileUtils';
+import { saveAssetToAppropriateDirectory } from '../utils/fileUtils';
 import { getExtensionFromMimeType } from '../utils/hashUtils';
 
 /**
@@ -80,9 +80,8 @@ export class MarkdownImagePasteProvider implements vscode.DocumentPasteEditProvi
             const buffer = Buffer.from(imageData);
             const { fileName, isImage } = await saveAssetToAppropriateDirectory(buffer, ext);
             
-            // Use configured path
-            const markdownPath = isImage ? getImageMarkdownPath(fileName) : getFileMarkdownPath(fileName);
-            const markdownText = `![image](${markdownPath})`;
+            // Use Obsidian-style link: [[filename]]
+            const markdownText = `[[${fileName}]]`;
             
             return new vscode.DocumentPasteEdit(
                 markdownText,
@@ -133,20 +132,13 @@ export class MarkdownImagePasteProvider implements vscode.DocumentPasteEditProvi
                     // Read the file
                     const fileContent = await vscode.workspace.fs.readFile(fileUri);
                     const ext = path.extname(fileUri.path).slice(1).toLowerCase();
-                    const originalName = path.basename(fileUri.path, path.extname(fileUri.path));
                     const buffer = Buffer.from(fileContent);
 
                     // Save to appropriate directory
                     const { fileName, isImage } = await saveAssetToAppropriateDirectory(buffer, ext);
                     
-                    // Use configured path
-                    const markdownPath = isImage ? getImageMarkdownPath(fileName) : getFileMarkdownPath(fileName);
-                    
-                    if (isImage) {
-                        snippets.push(`![${originalName}](${markdownPath})`);
-                    } else {
-                        snippets.push(`[${path.basename(fileUri.path)}](${markdownPath})`);
-                    }
+                    // Use Obsidian-style link: [[filename]]
+                    snippets.push(`[[${fileName}]]`);
                 } catch (e) {
                     // Skip files that can't be read
                     console.error(`Failed to process file: ${uriString}`, e);
