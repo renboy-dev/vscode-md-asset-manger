@@ -2,7 +2,7 @@
   "name": "md-asset-manager",
   "displayName": "Markdown Asset Manager",
   "description": "Manage markdown assets with auto-save to assets directory and hash renaming",
-  "version": "0.0.1",
+  "version": "2.0.0",
   "publisher": "your-publisher-name",
   "license": "MIT",
     "icon": "icons/icon.png",
