@@ -1,6 +1,6 @@
 # Markdown Asset Manager
 
-一个 VS Code 扩展，用于本地集中管理Markdown文档中的图片和文件附件。
+一个VSCode扩展，用于本地集中管理Markdown文档中的图片和文件附件。实现类似于Obsidian本地附件管理方式，用于VSCode来编写笔记，其扩展能力更强，支持文件类型更丰富。
 
 ## 功能特性
 
