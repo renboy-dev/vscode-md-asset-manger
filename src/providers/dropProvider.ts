@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { saveAssetToAppropriateDirectory, getImageMarkdownPath, getFileMarkdownPath } from '../utils/fileUtils';
+import { saveAssetToAppropriateDirectory } from '../utils/fileUtils';
 
 /**
  * Handle file drop into markdown editor
@@ -47,14 +47,8 @@ export class MarkdownFileDropProvider implements vscode.DocumentDropEditProvider
                 
                 const { fileName, isImage } = await saveAssetToAppropriateDirectory(buffer, ext);
                 
-                // Use configured path
-                const markdownPath = isImage ? getImageMarkdownPath(fileName) : getFileMarkdownPath(fileName);
-                
-                if (isImage) {
-                    snippets.push(`![${path.basename(uri.path, path.extname(uri.path))}](${markdownPath})`);
-                } else {
-                    snippets.push(`[${path.basename(uri.path)}](${markdownPath})`);
-                }
+                // Use Obsidian-style link: [[filename]]
+                snippets.push(`[[${fileName}]]`);
             }
 
             return new vscode.DocumentDropEdit(snippets.join('\n'));
