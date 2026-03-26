@@ -92,6 +92,102 @@ function activate(context) {
     context.subscriptions.push(scanSecretsCommand);
     // Activate preview enhancer
     (0, previewEnhancer_1.activatePreviewEnhancer)(context);
+    // Return extendMarkdownIt for VS Code markdown preview integration
+    return {
+        extendMarkdownIt(md) {
+            const IMAGE_EXTENSIONS = new Set([
+                'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'tiff', 'ico', 'apng'
+            ]);
+            function isImage(filename) {
+                const ext = filename.split('.').pop()?.toLowerCase() || '';
+                return IMAGE_EXTENSIONS.has(ext);
+            }
+            function obsidianLink(state, silent) {
+                const start = state.pos;
+                const max = state.posMax;
+                // Check if we're inside inline code (between backticks)
+                // Count backticks before current position in the source
+                let backtickCount = 0;
+                for (let i = start - 1; i >= 0; i--) {
+                    const ch = state.src.charCodeAt(i);
+                    if (ch === 0x60 /* ` */) {
+                        backtickCount++;
+                    }
+                    else if (ch === 0x0A /* newline */) {
+                        // Stop at line start - backticks only count on same line
+                        break;
+                    }
+                }
+                // Odd number of backticks means we're inside inline code
+                if (backtickCount % 2 === 1) {
+                    return false;
+                }
+                // Check for [[
+                if (state.src.charCodeAt(start) !== 0x5B ||
+                    state.src.charCodeAt(start + 1) !== 0x5B) {
+                    return false;
+                }
+                // Find closing ]]
+                let pos = start + 2;
+                let found = false;
+                while (pos < max - 1) {
+                    if (state.src.charCodeAt(pos) === 0x5D &&
+                        state.src.charCodeAt(pos + 1) === 0x5D) {
+                        found = true;
+                        break;
+                    }
+                    pos++;
+                }
+                if (!found)
+                    return false;
+                const content = state.src.slice(start + 2, pos);
+                const endPos = pos + 2;
+                // Parse: filename or filename|display
+                const pipeIndex = content.indexOf('|');
+                let filename;
+                let displayText;
+                if (pipeIndex > 0) {
+                    filename = content.slice(0, pipeIndex).trim();
+                    displayText = content.slice(pipeIndex + 1).trim();
+                }
+                else {
+                    filename = content.trim();
+                    displayText = filename;
+                }
+                if (!filename)
+                    return false;
+                if (silent)
+                    return true;
+                // Get config at render time (not at initialization)
+                // This ensures config changes take effect immediately
+                const config = vscode.workspace.getConfiguration('mdAssetManager');
+                const assetsRoot = config.get('assetsRoot', 'assets');
+                const imagesSubdir = config.get('imagesSubdir', 'images');
+                const filesSubdir = config.get('filesSubdir', 'files');
+                const img = isImage(filename);
+                const subdir = img ? imagesSubdir : filesSubdir;
+                const assetPath = `/${assetsRoot}/${subdir}/${filename}`;
+                // Create proper markdown tokens
+                if (img) {
+                    const token = state.push('image', 'img', 0);
+                    token.attrs = [['src', assetPath], ['alt', displayText]];
+                    token.content = displayText;
+                    token.children = [];
+                }
+                else {
+                    let token = state.push('link_open', 'a', 1);
+                    token.attrs = [['href', assetPath]];
+                    token = state.push('text', '', 0);
+                    token.content = displayText;
+                    state.push('link_close', 'a', -1);
+                }
+                state.pos = endPos;
+                return true;
+            }
+            md.inline.ruler.before('link', 'obsidian_link', obsidianLink);
+            return md;
+        }
+    };
 }
 function deactivate() { }
 //# sourceMappingURL=extension.js.map

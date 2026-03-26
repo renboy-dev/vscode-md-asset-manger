@@ -137,10 +137,17 @@ class MarkdownImagePasteProvider {
                     const fileContent = await vscode.workspace.fs.readFile(fileUri);
                     const ext = path.extname(fileUri.path).slice(1).toLowerCase();
                     const buffer = Buffer.from(fileContent);
+                    const originalFileName = path.basename(fileUri.path);
                     // Save to appropriate directory
-                    const { fileName, isImage } = await (0, fileUtils_1.saveAssetToAppropriateDirectory)(buffer, ext);
-                    // Use Obsidian-style link: [[filename]]
-                    snippets.push(`[[${fileName}]]`);
+                    const { fileName, isImage, displayName } = await (0, fileUtils_1.saveAssetToAppropriateDirectory)(buffer, ext, originalFileName);
+                    // Use Obsidian-style link
+                    // For non-image files, include display name: [[hash|originalName]]
+                    if (isImage || !displayName) {
+                        snippets.push(`[[${fileName}]]`);
+                    }
+                    else {
+                        snippets.push(`[[${fileName}|${displayName}]]`);
+                    }
                 }
                 catch (e) {
                     // Skip files that can't be read
