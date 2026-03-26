@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { MarkdownImagePasteProvider } from './providers/pasteProvider';
 import { MarkdownFileDropProvider } from './providers/dropProvider';
 import { activatePreviewEnhancer } from './previewEnhancer';
+import { scanAndGenerateReport } from './utils/linkScanner';
+import { scanSecretsAndGenerateReport } from './utils/secretScanner';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Markdown Asset Manager is now active!');
@@ -58,6 +60,24 @@ export function activate(context: vscode.ExtensionContext) {
         }
     );
     context.subscriptions.push(openAssetsCommand);
+
+    // Register scan invalid links command
+    const scanLinksCommand = vscode.commands.registerCommand(
+        'mdAssetManager.scanInvalidLinks',
+        async () => {
+            await scanAndGenerateReport();
+        }
+    );
+    context.subscriptions.push(scanLinksCommand);
+
+    // Register scan secrets command
+    const scanSecretsCommand = vscode.commands.registerCommand(
+        'mdAssetManager.scanSecrets',
+        async () => {
+            await scanSecretsAndGenerateReport();
+        }
+    );
+    context.subscriptions.push(scanSecretsCommand);
 
     // Activate preview enhancer
     activatePreviewEnhancer(context);

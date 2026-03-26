@@ -39,6 +39,8 @@ const vscode = __importStar(require("vscode"));
 const pasteProvider_1 = require("./providers/pasteProvider");
 const dropProvider_1 = require("./providers/dropProvider");
 const previewEnhancer_1 = require("./previewEnhancer");
+const linkScanner_1 = require("./utils/linkScanner");
+const secretScanner_1 = require("./utils/secretScanner");
 function activate(context) {
     console.log('Markdown Asset Manager is now active!');
     // Register paste provider
@@ -78,6 +80,16 @@ function activate(context) {
         await vscode.commands.executeCommand('revealFileInOS', assetsPath);
     });
     context.subscriptions.push(openAssetsCommand);
+    // Register scan invalid links command
+    const scanLinksCommand = vscode.commands.registerCommand('mdAssetManager.scanInvalidLinks', async () => {
+        await (0, linkScanner_1.scanAndGenerateReport)();
+    });
+    context.subscriptions.push(scanLinksCommand);
+    // Register scan secrets command
+    const scanSecretsCommand = vscode.commands.registerCommand('mdAssetManager.scanSecrets', async () => {
+        await (0, secretScanner_1.scanSecretsAndGenerateReport)();
+    });
+    context.subscriptions.push(scanSecretsCommand);
     // Activate preview enhancer
     (0, previewEnhancer_1.activatePreviewEnhancer)(context);
 }
