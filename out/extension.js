@@ -41,8 +41,22 @@ const dropProvider_1 = require("./providers/dropProvider");
 const previewEnhancer_1 = require("./previewEnhancer");
 const linkScanner_1 = require("./utils/linkScanner");
 const secretScanner_1 = require("./utils/secretScanner");
+const EXTENSION_ID = 'renboy.md-asset-manager';
 function activate(context) {
     console.log('Markdown Asset Manager is now active!');
+    // 检查是否是首次安装或更新后首次激活
+    const previousVersion = context.globalState.get('extensionVersion');
+    const currentVersion = vscode.extensions.getExtension(EXTENSION_ID)?.packageJSON.version;
+    if (previousVersion !== currentVersion) {
+        // 版本变化，可能是新安装或更新
+        context.globalState.update('extensionVersion', currentVersion);
+        // 显示重启提示
+        vscode.window.showInformationMessage(`🎉 Markdown Asset Manager ${currentVersion} 安装完成！需要重启 VS Code 才能完全生效。`, '立即重启', '稍后手动重启').then(selection => {
+            if (selection === '立即重启') {
+                vscode.commands.executeCommand('workbench.action.reloadWindow');
+            }
+        });
+    }
     // Register paste provider
     const pasteProvider = new pasteProvider_1.MarkdownImagePasteProvider();
     const pasteDisposable = vscode.languages.registerDocumentPasteEditProvider({ language: 'markdown' }, pasteProvider, {
