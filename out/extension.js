@@ -122,13 +122,14 @@ function activate(context) {
                 if (backtickCount % 2 === 1) {
                     return false;
                 }
-                // Check for [[
-                if (state.src.charCodeAt(start) !== 0x5B ||
-                    state.src.charCodeAt(start + 1) !== 0x5B) {
+                // Check for ![[  (Obsidian embed syntax)
+                if (state.src.charCodeAt(start) !== 0x21 /* ! */ ||
+                    state.src.charCodeAt(start + 1) !== 0x5B /* [ */ ||
+                    state.src.charCodeAt(start + 2) !== 0x5B /* [ */) {
                     return false;
                 }
                 // Find closing ]]
-                let pos = start + 2;
+                let pos = start + 3;
                 let found = false;
                 while (pos < max - 1) {
                     if (state.src.charCodeAt(pos) === 0x5D &&
@@ -140,7 +141,7 @@ function activate(context) {
                 }
                 if (!found)
                     return false;
-                const content = state.src.slice(start + 2, pos);
+                const content = state.src.slice(start + 3, pos);
                 const endPos = pos + 2;
                 // Parse: filename or filename|display
                 const pipeIndex = content.indexOf('|');

@@ -2,7 +2,7 @@
 
 一个VSCode扩展，用于本地集中管理Markdown文档中的图片和文件附件。
 
-实现类似于Obsidian本地附件管理方式（支持Obsidian语法:`[[filename]]`），用于VSCode来编写笔记，其扩展能力更强，支持文件类型更丰富。
+实现类似于Obsidian本地附件管理方式（支持Obsidian嵌入语法:`![[filename]]`），用于VSCode来编写笔记，其扩展能力更强，支持文件类型更丰富。
 
 附件集中管理的好处：
 - 你笔记随时随地的删除和重命名，都不会引起链接丢失
@@ -22,16 +22,16 @@
 - **图片文件**：粘贴或拖拽时自动保存到配置的图片目录
 - **其他文件**：粘贴或拖拽时自动保存到配置的文件目录
 - 使用内容 MD5 hash 自动命名文件，自动去重
-- 采用 Obsidian 语法 `[[文件名]]` 插入链接
+- 采用 Obsidian 嵌入语法 `![[文件名]]` 插入链接
 
 ### Obsidian 语法支持
-- 粘贴/拖拽文件时自动插入 `[[filename.ext]]` 格式链接
+- 粘贴/拖拽文件时自动插入 `![[filename.ext]]` 格式嵌入链接
 - 内置预览支持解析 Obsidian 双向链接语法
 - 兼容标准 Markdown 语法
 
 ### 内联预览增强
 - 编辑器右上角预览按钮，一键打开
-- 支持 Obsidian `[[filename]]` 语法渲染
+- 支持 Obsidian `![[filename]]` 嵌入语法渲染
 - 图片自动显示，文件显示为可点击链接
 - 支持暗色模式
 
@@ -137,14 +137,17 @@ Markdown Asset Manager
 | `扫描无效链接` | 扫描工作区所有 Markdown 文件的无效链接 |
 | `扫描敏感信息` | 扫描工作区所有 Markdown 文件的敏感信息 |
 
-## Obsidian 链接语法
+## Obsidian 嵌入语法
 
 ### 基本语法
 ```markdown
-[[filename.png]]           图片链接
-[[document.pdf]]           文件链接
-[[filename|显示名称]]       带显示名称的链接
+![[filename.png]]           图片嵌入
+![[document.pdf]]           文件链接
+![[filename|显示名称]]       带显示名称的嵌入
 ```
+
+> **注意**: `![[filename]]` 是 Obsidian 的嵌入语法，用于直接显示/嵌入文件内容。
+> 与 `[[filename]]` 链接语法不同，嵌入语法会直接渲染图片或显示文件链接。
 
 ### 示例
 
@@ -152,10 +155,10 @@ Markdown Asset Manager
 
 ```markdown
 # 粘贴图片
-[[a1b2c3d4e5f6g7h8i9j0.png]]
+![[a1b2c3d4e5f6g7h8i9j0.png]]
 
 # 拖拽 PDF（自动保留原文件名）
-[[b2c3d4e5f6g7h8i9j0k1.pdf|季度报告]]
+![[b2c3d4e5f6g7h8i9j0k1.pdf|季度报告]]
 ```
 
 文件结构：

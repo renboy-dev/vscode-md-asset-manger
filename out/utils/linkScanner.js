@@ -45,6 +45,7 @@ function extractLinks(document) {
     const text = document.getText();
     const links = [];
     const filePath = document.uri.fsPath;
+    // Standard Markdown links: ![alt](path) or [text](path)
     const linkPattern = /!?\[([^\]]*)\]\(([^)]+)\)/g;
     let match;
     while ((match = linkPattern.exec(text)) !== null) {
@@ -57,6 +58,27 @@ function extractLinks(document) {
         links.push({
             text: linkText,
             target: linkTarget,
+            isImage,
+            line: startPosition.line + 1,
+            filePath
+        });
+    }
+    // Obsidian embed syntax: ![[filename]] or ![[filename|display]]
+    const obsidianPattern = /!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+    while ((match = obsidianPattern.exec(text)) !== null) {
+        const filename = match[1].trim();
+        const displayText = match[2] ? match[2].trim() : filename;
+        // Determine if it's an image based on extension
+        const ext = filename.split('.').pop()?.toLowerCase() || '';
+        const IMAGE_EXTENSIONS = new Set([
+            'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'tiff', 'ico', 'apng'
+        ]);
+        const isImage = IMAGE_EXTENSIONS.has(ext);
+        const startOffset = match.index;
+        const startPosition = document.positionAt(startOffset);
+        links.push({
+            text: displayText,
+            target: filename,
             isImage,
             line: startPosition.line + 1,
             filePath
@@ -80,6 +102,15 @@ function isSpecialLink(target) {
         target.startsWith('mailto:') ||
         target.startsWith('tel:') ||
         target.startsWith('vscode:');
+}
+/**
+ * 判断目标是否为纯文件名（Obsidian embed 语法）
+ */
+function isPureFilename(target) {
+    // 不包含路径分隔符，且有扩展名
+    return !target.includes('/') &&
+        !target.includes('\\') &&
+        target.includes('.');
 }
 /**
  * 解析相对路径为绝对路径
@@ -106,6 +137,16 @@ function resolveLinkPath(link, documentUri) {
     // 绝对路径（以 / 开头，相对于工作区根目录）
     if (targetPath.startsWith('/')) {
         return vscode.Uri.joinPath(workspaceRoot, targetPath.substring(1));
+    }
+    // Obsidian embed syntax: 纯文件名，在 assets 目录中查找
+    if (isPureFilename(targetPath)) {
+        const config = vscode.workspace.getConfiguration('mdAssetManager');
+        const assetsRoot = config.get('assetsRoot', 'assets');
+        const imagesSubdir = config.get('imagesSubdir', 'images');
+        const filesSubdir = config.get('filesSubdir', 'files');
+        // 根据是否为图片选择子目录
+        const subdir = link.isImage ? imagesSubdir : filesSubdir;
+        return vscode.Uri.joinPath(workspaceRoot, assetsRoot, subdir, targetPath);
     }
     // 相对于当前文档的路径
     const docDir = path.dirname(documentUri.fsPath);

@@ -80,8 +80,8 @@ export class MarkdownImagePasteProvider implements vscode.DocumentPasteEditProvi
             const buffer = Buffer.from(imageData);
             const { fileName, isImage } = await saveAssetToAppropriateDirectory(buffer, ext);
             
-            // Use Obsidian-style link: [[filename]]
-            const markdownText = `[[${fileName}]]`;
+            // Use Obsidian-style embed link: ![[filename]]
+            const markdownText = `![[${fileName}]]`;
             
             return new vscode.DocumentPasteEdit(
                 markdownText,
@@ -138,12 +138,12 @@ export class MarkdownImagePasteProvider implements vscode.DocumentPasteEditProvi
                     // Save to appropriate directory
                     const { fileName, isImage, displayName } = await saveAssetToAppropriateDirectory(buffer, ext, originalFileName);
                     
-                    // Use Obsidian-style link
-                    // For non-image files, include display name: [[hash|originalName]]
+                    // Use Obsidian-style embed link
+                    // For non-image files, include display name: ![[hash|originalName]]
                     if (isImage || !displayName) {
-                        snippets.push(`[[${fileName}]]`);
+                        snippets.push(`![[${fileName}]]`);
                     } else {
-                        snippets.push(`[[${fileName}|${displayName}]]`);
+                        snippets.push(`![[${fileName}|${displayName}]]`);
                     }
                 } catch (e) {
                     // Skip files that can't be read
