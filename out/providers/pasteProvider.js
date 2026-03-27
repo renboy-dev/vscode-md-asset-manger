@@ -93,8 +93,8 @@ class MarkdownImagePasteProvider {
             const ext = (0, hashUtils_1.getExtensionFromMimeType)(mimeType);
             const buffer = Buffer.from(imageData);
             const { fileName, isImage } = await (0, fileUtils_1.saveAssetToAppropriateDirectory)(buffer, ext);
-            // Use Obsidian-style link: [[filename]]
-            const markdownText = `[[${fileName}]]`;
+            // Use Obsidian-style embed link: ![[filename]]
+            const markdownText = `![[${fileName}]]`;
             return new vscode.DocumentPasteEdit(markdownText, 'Paste Image as Markdown', vscode.DocumentDropOrPasteEditKind.Empty);
         }
         catch (error) {
@@ -140,13 +140,13 @@ class MarkdownImagePasteProvider {
                     const originalFileName = path.basename(fileUri.path);
                     // Save to appropriate directory
                     const { fileName, isImage, displayName } = await (0, fileUtils_1.saveAssetToAppropriateDirectory)(buffer, ext, originalFileName);
-                    // Use Obsidian-style link
-                    // For non-image files, include display name: [[hash|originalName]]
+                    // Use Obsidian-style embed link
+                    // For non-image files, include display name: ![[hash|originalName]]
                     if (isImage || !displayName) {
-                        snippets.push(`[[${fileName}]]`);
+                        snippets.push(`![[${fileName}]]`);
                     }
                     else {
-                        snippets.push(`[[${fileName}|${displayName}]]`);
+                        snippets.push(`![[${fileName}|${displayName}]]`);
                     }
                 }
                 catch (e) {

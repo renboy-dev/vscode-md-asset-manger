@@ -97,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
             function obsidianLink(state: any, silent: boolean): boolean {
                 const start = state.pos;
                 const max = state.posMax;
-
+            
                 // Check if we're inside inline code (between backticks)
                 // Count backticks before current position in the source
                 let backtickCount = 0;
@@ -114,28 +114,29 @@ export function activate(context: vscode.ExtensionContext) {
                 if (backtickCount % 2 === 1) {
                     return false;
                 }
-
-                // Check for [[
-                if (state.src.charCodeAt(start) !== 0x5B || 
-                    state.src.charCodeAt(start + 1) !== 0x5B) {
+            
+                // Check for ![[  (Obsidian embed syntax)
+                if (state.src.charCodeAt(start) !== 0x21 /* ! */ ||
+                    state.src.charCodeAt(start + 1) !== 0x5B /* [ */ ||
+                    state.src.charCodeAt(start + 2) !== 0x5B /* [ */) {
                     return false;
                 }
-
+            
                 // Find closing ]]
-                let pos = start + 2;
+                let pos = start + 3;
                 let found = false;
                 while (pos < max - 1) {
-                    if (state.src.charCodeAt(pos) === 0x5D && 
+                    if (state.src.charCodeAt(pos) === 0x5D &&
                         state.src.charCodeAt(pos + 1) === 0x5D) {
                         found = true;
                         break;
                     }
                     pos++;
                 }
-
+            
                 if (!found) return false;
-
-                const content = state.src.slice(start + 2, pos);
+            
+                const content = state.src.slice(start + 3, pos);
                 const endPos = pos + 2;
 
                 // Parse: filename or filename|display

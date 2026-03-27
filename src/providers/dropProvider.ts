@@ -48,12 +48,12 @@ export class MarkdownFileDropProvider implements vscode.DocumentDropEditProvider
                 
                 const { fileName, isImage, displayName } = await saveAssetToAppropriateDirectory(buffer, ext, originalFileName);
                 
-                // Use Obsidian-style link
-                // For non-image files, include display name: [[hash|originalName]]
+                // Use Obsidian-style embed link
+                // For non-image files, include display name: ![[hash|originalName]]
                 if (isImage || !displayName) {
-                    snippets.push(`[[${fileName}]]`);
+                    snippets.push(`![[${fileName}]]`);
                 } else {
-                    snippets.push(`[[${fileName}|${displayName}]]`);
+                    snippets.push(`![[${fileName}|${displayName}]]`);
                 }
             }
 

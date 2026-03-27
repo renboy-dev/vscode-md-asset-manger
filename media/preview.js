@@ -1,6 +1,6 @@
 // Markdown preview enhancer script
 // This script is injected into the built-in Markdown preview
-// Supports Obsidian-style [[filename]] syntax and enhances asset paths
+// Supports Obsidian-style ![[filename]] embed syntax and enhances asset paths
 
 (function() {
     'use strict';
@@ -61,10 +61,10 @@
     });
 
     /**
-     * Convert Obsidian-style [[filename]] links to actual elements
+     * Convert Obsidian-style ![[filename]] embed links to actual elements
      */
     function convertObsidianLinks() {
-        // Find all text nodes that might contain Obsidian links
+        // Find all text nodes that might contain Obsidian embed links
         const walker = document.createTreeWalker(
             document.body,
             NodeFilter.SHOW_TEXT,
@@ -74,7 +74,7 @@
 
         const textNodes = [];
         while (walker.nextNode()) {
-            if (/\[\[[^\]]+\]\]/.test(walker.currentNode.textContent)) {
+            if (/!\[\[[^\]]+\]\]/.test(walker.currentNode.textContent)) {
                 textNodes.push(walker.currentNode);
             }
         }
@@ -84,8 +84,8 @@
             const text = node.textContent;
             const parent = node.parentNode;
             
-            // Pattern: [[filename]] or [[filename|display text]]
-            const pattern = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+            // Pattern: ![[filename]] or ![[filename|display text]]
+            const pattern = /!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
             
             let lastIndex = 0;
             let match;
@@ -205,8 +205,8 @@
                                 enhancePaths();
                             }
                         }
-                        // Check for text nodes with Obsidian links
-                        if (node.nodeType === Node.TEXT_NODE && /\[\[[^\]]+\]\]/.test(node.textContent)) {
+                        // Check for text nodes with Obsidian embed links
+                        if (node.nodeType === Node.TEXT_NODE && /!\[\[[^\]]+\]\]/.test(node.textContent)) {
                             convertObsidianLinks();
                         }
                     });
