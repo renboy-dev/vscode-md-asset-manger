@@ -61,6 +61,20 @@
     });
 
     /**
+     * Check if a node is inside a code or pre element
+     */
+    function isInCodeBlock(node) {
+        let parent = node.parentNode;
+        while (parent) {
+            if (parent.nodeName === 'CODE' || parent.nodeName === 'PRE') {
+                return true;
+            }
+            parent = parent.parentNode;
+        }
+        return false;
+    }
+
+    /**
      * Convert Obsidian-style ![[filename]] embed links to actual elements
      */
     function convertObsidianLinks() {
@@ -74,6 +88,10 @@
 
         const textNodes = [];
         while (walker.nextNode()) {
+            // Skip nodes inside code blocks
+            if (isInCodeBlock(walker.currentNode)) {
+                continue;
+            }
             if (/!\[\[[^\]]+\]\]/.test(walker.currentNode.textContent)) {
                 textNodes.push(walker.currentNode);
             }
@@ -207,7 +225,10 @@
                         }
                         // Check for text nodes with Obsidian embed links
                         if (node.nodeType === Node.TEXT_NODE && /!\[\[[^\]]+\]\]/.test(node.textContent)) {
-                            convertObsidianLinks();
+                            // Skip if inside code block
+                            if (!isInCodeBlock(node)) {
+                                convertObsidianLinks();
+                            }
                         }
                     });
                 }
