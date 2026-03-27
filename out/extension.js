@@ -105,17 +105,51 @@ function activate(context) {
             function obsidianLink(state, silent) {
                 const start = state.pos;
                 const max = state.posMax;
-                // Check if we're inside inline code (between backticks)
-                // Count backticks before current position in the source
-                let backtickCount = 0;
-                for (let i = start - 1; i >= 0; i--) {
-                    const ch = state.src.charCodeAt(i);
-                    if (ch === 0x60 /* ` */) {
-                        backtickCount++;
+                // Check if we're inside a fenced code block (```).
+                // Count occurrences of ``` from document start to current position.
+                // A fence starts at line beginning with 3+ backticks.
+                let inFencedCodeBlock = false;
+                const src = state.src;
+                let fenceCount = 0;
+                let pos2 = 0;
+                while (pos2 < start) {
+                    // Check if at line start
+                    if (pos2 === 0 || src.charCodeAt(pos2 - 1) === 0x0A /* newline */) {
+                        // Check for fence (3+ backticks)
+                        if (src.charCodeAt(pos2) === 0x60 /* ` */ &&
+                            src.charCodeAt(pos2 + 1) === 0x60 /* ` */ &&
+                            src.charCodeAt(pos2 + 2) === 0x60 /* ` */) {
+                            fenceCount++;
+                            pos2 += 3;
+                            // Skip additional backticks
+                            while (pos2 < start && src.charCodeAt(pos2) === 0x60) {
+                                pos2++;
+                            }
+                            // Skip to end of line
+                            while (pos2 < start && src.charCodeAt(pos2) !== 0x0A) {
+                                pos2++;
+                            }
+                            continue;
+                        }
                     }
-                    else if (ch === 0x0A /* newline */) {
-                        // Stop at line start - backticks only count on same line
-                        break;
+                    pos2++;
+                }
+                // Odd fence count means we're inside a code block
+                if (fenceCount % 2 === 1) {
+                    return false;
+                }
+                // Check if we're inside inline code (between backticks)
+                // We need to check if the current position is between a pair of backticks
+                // by counting backticks from the start of the current line
+                let lineStart = start;
+                while (lineStart > 0 && state.src.charCodeAt(lineStart - 1) !== 0x0A /* newline */) {
+                    lineStart--;
+                }
+                // Count backticks from line start to current position
+                let backtickCount = 0;
+                for (let i = lineStart; i < start; i++) {
+                    if (state.src.charCodeAt(i) === 0x60 /* ` */) {
+                        backtickCount++;
                     }
                 }
                 // Odd number of backticks means we're inside inline code
