@@ -1,9 +1,9 @@
 {
   "name": "md-asset-manager",
   "displayName": "Markdown Asset Manager",
-  "description": "Manage markdown assets with auto-save to assets directory and hash renaming",
+  "description": "Markdown附件本地集中管理，实现类似于Obsidian本地附件管理方式（支持Obsidian嵌入语法 ![[filename]]）",
   "version": "2.0.0",
-  "publisher": "your-publisher-name",
+  "publisher": "renboy",
   "license": "MIT",
     "icon": "icons/icon.png",
   "repository": {
