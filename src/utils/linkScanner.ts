@@ -25,6 +25,68 @@ interface ScanResult {
 }
 
 /**
+ * 代码块范围
+ */
+interface CodeBlockRange {
+    start: number;
+    end: number;
+}
+
+/**
+ * 找出所有代码块的位置（包括行内代码和多行代码块）
+ */
+function findCodeBlocks(text: string): CodeBlockRange[] {
+    const codeBlocks: CodeBlockRange[] = [];
+    
+    // 先找出多行代码块（```...```）
+    const multilineCodePattern = /```[\s\S]*?```/g;
+    let match;
+    while ((match = multilineCodePattern.exec(text)) !== null) {
+        codeBlocks.push({ start: match.index, end: match.index + match[0].length });
+    }
+    
+    // 找出行内代码（`...`），排除已经在多行代码块内的
+    const inlineCodePattern = /`[^`]+`/g;
+    while ((match = inlineCodePattern.exec(text)) !== null) {
+        const start = match.index;
+        const end = match.index + match[0].length;
+        
+        // 检查是否在多行代码块内
+        const inMultilineBlock = codeBlocks.some(
+            block => block.start < start && block.end > end
+        );
+        
+        if (!inMultilineBlock) {
+            codeBlocks.push({ start, end });
+        }
+    }
+    
+    // 按起始位置排序
+    codeBlocks.sort((a, b) => a.start - b.start);
+    
+    return codeBlocks;
+}
+
+/**
+ * 检查位置是否在代码块内
+ */
+function isInCodeBlock(offset: number, codeBlocks: CodeBlockRange[]): boolean {
+    for (const block of codeBlocks) {
+        if (offset >= block.start && offset < block.end) {
+            return true;
+        }
+        // 由于代码块已排序，如果当前位置已超过代码块结束位置，可以提前退出
+        if (offset >= block.end) {
+            continue;
+        }
+        if (offset < block.start) {
+            break;
+        }
+    }
+    return false;
+}
+
+/**
  * 从 Markdown 文档中提取所有链接
  */
 function extractLinks(document: vscode.TextDocument): MarkdownLink[] {
@@ -32,17 +94,26 @@ function extractLinks(document: vscode.TextDocument): MarkdownLink[] {
     const links: MarkdownLink[] = [];
     const filePath = document.uri.fsPath;
     
+    // 找出所有代码块位置，排除代码块中的内容
+    const codeBlocks = findCodeBlocks(text);
+    
     // Standard Markdown links: ![alt](path) or [text](path)
     const linkPattern = /!?\[([^\]]*)\]\(([^)]+)\)/g;
     
     let match;
     while ((match = linkPattern.exec(text)) !== null) {
+        const startOffset = match.index;
+        
+        // 跳过代码块中的内容
+        if (isInCodeBlock(startOffset, codeBlocks)) {
+            continue;
+        }
+        
         const fullMatch = match[0];
         const linkText = match[1];
         const linkTarget = match[2].trim();
         const isImage = fullMatch.startsWith('!');
         
-        const startOffset = match.index;
         const startPosition = document.positionAt(startOffset);
         
         links.push({
@@ -57,6 +128,13 @@ function extractLinks(document: vscode.TextDocument): MarkdownLink[] {
     // Obsidian embed syntax: ![[filename]] or ![[filename|display]]
     const obsidianPattern = /!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
     while ((match = obsidianPattern.exec(text)) !== null) {
+        const startOffset = match.index;
+        
+        // 跳过代码块中的内容
+        if (isInCodeBlock(startOffset, codeBlocks)) {
+            continue;
+        }
+        
         const filename = match[1].trim();
         const displayText = match[2] ? match[2].trim() : filename;
         
@@ -67,7 +145,6 @@ function extractLinks(document: vscode.TextDocument): MarkdownLink[] {
         ]);
         const isImage = IMAGE_EXTENSIONS.has(ext);
         
-        const startOffset = match.index;
         const startPosition = document.positionAt(startOffset);
         
         links.push({
@@ -78,7 +155,7 @@ function extractLinks(document: vscode.TextDocument): MarkdownLink[] {
             filePath
         });
     }
-    
+
     return links;
 }
 
@@ -102,6 +179,24 @@ function isSpecialLink(target: string): boolean {
 }
 
 /**
+ * 判断是否为伪链接（代码/模板中的特殊值）
+ */
+function isPseudoLink(target: string): boolean {
+    const lowerTarget = target.toLowerCase().trim();
+    // JavaScript/模板中的特殊值
+    return lowerTarget === 'null' ||
+           lowerTarget === 'undefined' ||
+           lowerTarget === 'true' ||
+           lowerTarget === 'false' ||
+           lowerTarget === 'nan' ||
+           // 空链接
+           lowerTarget === '' ||
+           // 模板变量
+           lowerTarget.startsWith('${') ||
+           lowerTarget.startsWith('{{');
+}
+
+/**
  * 判断目标是否为纯文件名（Obsidian embed 语法）
  */
 function isPureFilename(target: string): boolean {
@@ -121,6 +216,13 @@ function resolveLinkPath(link: MarkdownLink, documentUri: vscode.Uri): vscode.Ur
     }
     
     let targetPath = link.target;
+    
+    // 解码 URL 编码（如 %20 -> 空格）
+    try {
+        targetPath = decodeURIComponent(targetPath);
+    } catch {
+        // 如果解码失败，使用原始路径
+    }
     
     // 移除 URL 参数
     const hashIndex = targetPath.indexOf('#');
@@ -170,6 +272,11 @@ async function checkLink(link: MarkdownLink, documentUri: vscode.Uri): Promise<b
     
     // 特殊链接不检查
     if (isSpecialLink(link.target)) {
+        return true;
+    }
+    
+    // 伪链接不检查（代码/模板中的特殊值）
+    if (isPseudoLink(link.target)) {
         return true;
     }
     
@@ -265,6 +372,11 @@ export async function scanInvalidLinks(): Promise<ScanResult> {
                     }
                     
                     if (isSpecialLink(link.target)) {
+                        continue;
+                    }
+                    
+                    // 伪链接不检查
+                    if (isPseudoLink(link.target)) {
                         continue;
                     }
                     
