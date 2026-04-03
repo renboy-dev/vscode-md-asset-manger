@@ -4,6 +4,7 @@ import { MarkdownFileDropProvider } from './providers/dropProvider';
 import { activatePreviewEnhancer } from './previewEnhancer';
 import { scanAndGenerateReport } from './utils/linkScanner';
 import { scanSecretsAndGenerateReport } from './utils/secretScanner';
+import { scanEmptyFilesAndGenerateReport } from './utils/emptyFileScanner';
 
 const EXTENSION_ID = 'renboy.md-asset-manager';
 
@@ -100,6 +101,15 @@ export function activate(context: vscode.ExtensionContext) {
         }
     );
     context.subscriptions.push(scanSecretsCommand);
+
+    // Register scan empty files command
+    const scanEmptyFilesCommand = vscode.commands.registerCommand(
+        'mdAssetManager.scanEmptyFiles',
+        async () => {
+            await scanEmptyFilesAndGenerateReport();
+        }
+    );
+    context.subscriptions.push(scanEmptyFilesCommand);
 
     // Activate preview enhancer
     activatePreviewEnhancer(context);

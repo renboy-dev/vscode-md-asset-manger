@@ -41,6 +41,7 @@ const dropProvider_1 = require("./providers/dropProvider");
 const previewEnhancer_1 = require("./previewEnhancer");
 const linkScanner_1 = require("./utils/linkScanner");
 const secretScanner_1 = require("./utils/secretScanner");
+const emptyFileScanner_1 = require("./utils/emptyFileScanner");
 const EXTENSION_ID = 'renboy.md-asset-manager';
 function activate(context) {
     console.log('Markdown Asset Manager is now active!');
@@ -104,6 +105,11 @@ function activate(context) {
         await (0, secretScanner_1.scanSecretsAndGenerateReport)();
     });
     context.subscriptions.push(scanSecretsCommand);
+    // Register scan empty files command
+    const scanEmptyFilesCommand = vscode.commands.registerCommand('mdAssetManager.scanEmptyFiles', async () => {
+        await (0, emptyFileScanner_1.scanEmptyFilesAndGenerateReport)();
+    });
+    context.subscriptions.push(scanEmptyFilesCommand);
     // Activate preview enhancer
     (0, previewEnhancer_1.activatePreviewEnhancer)(context);
     // Return extendMarkdownIt for VS Code markdown preview integration

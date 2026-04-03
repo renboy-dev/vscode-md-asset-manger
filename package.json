@@ -37,6 +37,10 @@
       {
         "command": "mdAssetManager.scanSecrets",
         "title": "扫描敏感信息"
+      },
+      {
+        "command": "mdAssetManager.scanEmptyFiles",
+        "title": "扫描空文件"
       }
     ],
     "menus": {
@@ -76,6 +80,10 @@
         {
           "command": "mdAssetManager.scanSecrets",
           "group": "3_scan@2"
+        },
+        {
+          "command": "mdAssetManager.scanEmptyFiles",
+          "group": "3_scan@3"
         }
       ]
     },
